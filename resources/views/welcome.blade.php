@@ -71,7 +71,7 @@
                     <div class="inline-block px-4 py-1.5 rounded-full bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 text-sm font-semibold mb-6">Profil Profesional</div>
                     <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">Muhammad <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-500">Hanif.</span></h1>
                     <h2 class="text-2xl text-slate-600 dark:text-neutral-300 font-medium mb-6">Warehouse Administrator</h2>
-                    <p class="text-slate-600 dark:text-neutral-400 text-lg leading-relaxed mb-8">Berpengalaman di fasilitas Gudang Cikarang dengan fokus pada optimalisasi tata kelola pergudangan. Merancang antarmuka web yang responsif, serta melakukan integrasi API untuk efisiensi logistik.</p>
+                    <p class="text-slate-600 dark:text-neutral-400 text-lg leading-relaxed mb-8">Maju terus, hadapi semua rintangan</p>
                     
                     <div class="flex flex-wrap gap-4">
                         @if(isset($owner) && $owner->cv_path)

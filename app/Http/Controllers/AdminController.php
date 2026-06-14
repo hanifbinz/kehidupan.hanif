@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Journal;
-use App\Models\Gallery; // Tambahan wajib
+use App\Models\Gallery; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-// Tambahan class wajib untuk kompresi gambar (Intervention Image)
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+// Pastikan baris ini ada (Jembatan Facade Laravel)
+use Intervention\Image\Laravel\Facades\Image;
 
 class AdminController extends Controller
 {
@@ -20,7 +19,7 @@ class AdminController extends Controller
         $user = User::find(Auth::id());
         $projects = Project::latest()->get();
         $journals = Journal::latest()->get();
-        $galleries = Gallery::latest()->get(); // Ambil data galeri
+        $galleries = Gallery::latest()->get(); 
         
         return view('admin.dashboard', compact('user', 'projects', 'journals', 'galleries'));
     }
@@ -38,7 +37,6 @@ class AdminController extends Controller
         $request->validate([
             'phone' => 'nullable|string|max:20',
             'cv' => 'nullable|mimes:pdf|max:5120',
-            // Batas ukuran foto dinaikkan ke 5MB karena akan otomatis dikompres
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
@@ -66,9 +64,8 @@ class AdminController extends Controller
             
             $path = storage_path('app/public/profile_photos/' . $namaFile);
 
-            // 3. Proses Kompresi dengan Intervention Image
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($file);
+            // 3. Proses Kompresi dengan Intervention Image (Metode Facade)
+            $image = Image::read($file);
             
             // Perkecil lebar maksimal jadi 500px (tinggi menyesuaikan) dan simpan JPG kualitas 60%
             $image->scaleDown(width: 500);
