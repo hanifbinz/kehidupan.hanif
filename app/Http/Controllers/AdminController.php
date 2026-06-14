@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Journal;
-use App\Models\Gallery; 
+use App\Models\Gallery; // Tambahan wajib
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-// Pastikan baris ini ada (Jembatan Facade Laravel)
-use Intervention\Image\Laravel\Facades\Image;
+
+// KITA HAPUS INTERVENTION IMAGE, KITA PAKAI NATIVE PHP AGAR ANTI-ERROR
 
 class AdminController extends Controller
 {
@@ -19,7 +19,7 @@ class AdminController extends Controller
         $user = User::find(Auth::id());
         $projects = Project::latest()->get();
         $journals = Journal::latest()->get();
-        $galleries = Gallery::latest()->get(); 
+        $galleries = Gallery::latest()->get(); // Ambil data galeri
         
         return view('admin.dashboard', compact('user', 'projects', 'journals', 'galleries'));
     }
@@ -37,6 +37,7 @@ class AdminController extends Controller
         $request->validate([
             'phone' => 'nullable|string|max:20',
             'cv' => 'nullable|mimes:pdf|max:5120',
+            // Batas ukuran foto maksimal 5MB
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
@@ -64,12 +65,42 @@ class AdminController extends Controller
             
             $path = storage_path('app/public/profile_photos/' . $namaFile);
 
-            // 3. Proses Kompresi dengan Intervention Image (Metode Facade)
-            $image = Image::read($file);
+            // ------------------------------------------------------------------
+            // 3. PROSES KOMPRESI NATIVE PHP (Dijamin aman dari error package)
+            // ------------------------------------------------------------------
             
-            // Perkecil lebar maksimal jadi 500px (tinggi menyesuaikan) dan simpan JPG kualitas 60%
-            $image->scaleDown(width: 500);
-            $image->toJpeg(60)->save($path);
+            // Baca gambar asli
+            $source = imagecreatefromstring(file_get_contents($file->getRealPath()));
+            $width = imagesx($source);
+            $height = imagesy($source);
+
+            // Hitung dimensi baru (lebar mentok 500px, tinggi menyesuaikan)
+            $newWidth = 500;
+            $newHeight = floor($height * ($newWidth / $width));
+
+            // Jika foto asli sudah lebih kecil dari 500px, biarkan ukurannya
+            if ($width < $newWidth) {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // Siapkan kanvas baru
+            $destination = imagecreatetruecolor($newWidth, $newHeight);
+
+            // Isi kanvas dengan warna putih (Mencegah background hitam jika foto asli PNG transparan)
+            $white = imagecolorallocate($destination, 255, 255, 255);
+            imagefill($destination, 0, 0, $white);
+
+            // Salin foto ke kanvas baru dengan ukuran yang sudah diperkecil
+            imagecopyresampled($destination, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            // Simpan sebagai file JPG dengan kualitas gambar 60%
+            imagejpeg($destination, $path, 60);
+
+            // Bersihkan beban memori server
+            imagedestroy($source);
+            imagedestroy($destination);
+            // ------------------------------------------------------------------
 
             // 4. Simpan path ke database persis seperti aslinya
             $user->profile_photo_path = 'profile_photos/' . $namaFile;
